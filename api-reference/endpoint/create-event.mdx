@@ -1,0 +1,156 @@
+---
+title: 'Create Event'
+openapi: 'POST /subnets/{subnet_id}/events'
+---
+
+Creates a new event in the system. The behavior depends on the `event_type` provided:
+
+- **ride_start**: Creates a new task run and initiates video recording
+- **ride_end**: Completes an existing task run and stops video recording
+- **points_grant**: Grants points to a user's wallet address
+
+## Parameters
+
+### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `subnet_id` | string | Yes | The unique identifier of the subnet (ULID format) |
+
+## Request Body
+
+The request body varies based on the event type. Choose one of the following schemas:
+
+### Ride Start Event
+
+Creates a new task run and starts video recording.
+
+```json
+{
+  "event_type": "ride_start",
+  "task_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "ride_id": "ride_123456",
+  "bot_name": "bot_001"
+}
+```
+
+**Fields:**
+- `event_type` (string, required): Must be `"ride_start"`
+- `task_id` (string, required): The unique identifier of the task (ULID format)
+- `ride_id` (string, required): The unique identifier for this ride session
+- `bot_name` (string, required): The name of the bot performing the task
+
+### Ride End Event
+
+Completes an existing task run and stops video recording.
+
+```json
+{
+  "event_type": "ride_end",
+  "task_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+}
+```
+
+**Fields:**
+- `event_type` (string, required): Must be `"ride_end"`
+- `task_id` (string, required): The unique identifier of the task to complete (ULID format)
+
+### Points Grant Event
+
+Grants points to a user's wallet address.
+
+```json
+{
+  "event_type": "points_grant",
+  "wallet_address": "HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH",
+  "points": 100,
+  "reason": "Task completion bonus",
+  "client_ref": "task_123_completion",
+  "granted_at": "2025-10-22T12:00:00Z"
+}
+```
+
+**Fields:**
+- `event_type` (string, required): Must be `"points_grant"`
+- `wallet_address` (string, required): The Solana wallet address to grant points to
+- `points` (integer, required): The number of points to grant (must be greater than 0)
+- `reason` (string, required): The reason for granting these points
+- `client_ref` (string, optional): Client reference ID for idempotency and tracking
+- `granted_at` (string, optional): Timestamp when points were granted (ISO 8601 format)
+
+## Response
+
+### Success Response (200 OK)
+
+Returns a success status with event-specific data:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "task_run_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "recording_id": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "ledger_id": null
+  }
+}
+```
+
+**Response Fields:**
+- `task_run_id` (string, nullable): ID of the created or updated task run (for ride_start and ride_end events)
+- `recording_id` (string, nullable): ID of the video recording (for ride_start and ride_end events)
+- `ledger_id` (string, nullable): ID of the points ledger entry (for points_grant events)
+
+### Error Responses
+
+<Accordion>
+  <AccordionItem title="401 Unauthorized">
+    Invalid or missing API key.
+
+    ```json
+    {
+      "error": "Invalid or missing API key"
+    }
+    ```
+  </AccordionItem>
+
+  <AccordionItem title="422 Unprocessable Entity">
+    Invalid event data or unknown event type.
+
+    ```json
+    {
+      "status": "error",
+      "error": "Unknown event type: invalid_type"
+    }
+    ```
+  </AccordionItem>
+</Accordion>
+
+## Examples
+
+### Ride Start Example
+
+```bash
+curl -X POST "https://api.bitrobot.com/subnets/01ARZ3NDEKTSV4RRFFQ69G5FAV/events" \
+  -H "Authorization: Bearer brb_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_type": "ride_start",
+    "task_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "ride_id": "ride_123456",
+    "bot_name": "bot_001"
+  }'
+```
+
+### Points Grant Example
+
+```bash
+curl -X POST "https://api.bitrobot.com/subnets/01ARZ3NDEKTSV4RRFFQ69G5FAV/events" \
+  -H "Authorization: Bearer brb_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_type": "points_grant",
+    "wallet_address": "HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH",
+    "points": 100,
+    "reason": "Task completion bonus"
+  }'
+```

@@ -1,33 +1,60 @@
 ---
 title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+description: 'BitRobot API documentation for event tracking and management'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Overview
 
-## Welcome
-
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+The BitRobot API allows you to interact with the BitRobot platform, including event tracking, task management, and points distribution.
 
 <Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
+  title="OpenAPI Specification"
+  icon="file-code"
+  href="https://github.com/bitrobot/bitrobot-public-docs/blob/main/api-reference/openapi.json"
 >
-  View the OpenAPI specification file
+  View the complete OpenAPI specification file
 </Card>
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All requests require authentication using an API key. Include your API key in the `Authorization` header:
+
+```http
+Authorization: Bearer brb_your_api_key_here
+```
+
+Your API key should start with `brb_` and be kept secure.
+
+## Identifiers
+
+All resource identifiers in the API use the **ULID format** (Universally Unique Lexicographically Sortable Identifier). ULIDs are 26-character strings like: `01ARZ3NDEKTSV4RRFFQ69G5FAV`
+
+## Base URLs
+
+- **Production**: `https://api.bitrobot.com`
+- **Development**: `http://localhost:3000`
+
+## Event Types
+
+The API supports three types of events:
+
+| Event Type | Description |
+|------------|-------------|
+| `ride_start` | Creates a new task run and initiates video recording |
+| `ride_end` | Completes an existing task run and stops video recording |
+| `points_grant` | Grants points to a user's wallet address |
+
+## Error Handling
+
+The API uses standard HTTP status codes and returns error responses in JSON format:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "status": "error",
+  "error": "Description of the error"
+}
 ```
+
+Common error codes:
+- `401` - Unauthorized (invalid or missing API key)
+- `422` - Unprocessable Entity (invalid event data or unknown event type)
